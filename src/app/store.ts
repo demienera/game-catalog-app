@@ -1,8 +1,8 @@
 import type { Action, Middleware, ThunkAction } from "@reduxjs/toolkit";
 import { combineSlices, configureStore, isAction } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
-import games from "./slices/games/slice";
-import favorites from "./slices/favorites/slice";
+import games, { fetchFavoriteGamesThunk } from "./slices/games/slice";
+import favorites, { setFavoritesGames } from "./slices/favorites/slice";
 
 const localStorageMiddleware: Middleware<{}, RootState> =
   store => next => action => {
@@ -14,19 +14,29 @@ const localStorageMiddleware: Middleware<{}, RootState> =
         action.type === "games/removeGame"
       ) {
         const state = store.getState();
-        const localGames = state.games.allGames.filter(game => game.id < 0);
+        // Локальные игры: отрицательные ID или очень большие числа (timestamp)
+        const MAX_API_ID = 1000000;
+        const localGames = state.games.allGames.filter(
+          game => game.id < 0 || game.id > MAX_API_ID,
+        );
         localStorage.setItem("createdGames", JSON.stringify(localGames));
       }
 
-      if (
-        action.type === "favorites/toggleFavorite" ||
-        action.type === "favorites/removeFavorite"
-      ) {
+      // Сохраняем загруженные игры избранного в favoritesGames
+      if (action.type === fetchFavoriteGamesThunk.fulfilled.type) {
         const state = store.getState();
-        localStorage.setItem(
-          "favorites",
-          JSON.stringify(state.favorites.favorites),
+        const loadedGames = (action as any).payload || [];
+        const currentFavoritesGames = state.favorites.favoritesGames;
+        const newGames = loadedGames.filter(
+          (game: any) =>
+            !currentFavoritesGames.some((g: any) => g.id === game.id),
         );
+        if (newGames.length > 0) {
+          // Добавляем новые игры в начало списка избранного
+          store.dispatch(
+            setFavoritesGames([...newGames, ...currentFavoritesGames]),
+          );
+        }
       }
     }
 

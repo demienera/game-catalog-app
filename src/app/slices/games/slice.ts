@@ -22,22 +22,44 @@ export const fetchFavoriteGamesThunk = createAsyncThunk(
     try {
       const state = getState() as RootState;
 
-      const localIds = ids.filter(id => id < 0);
-      const apiIds = ids.filter(id => id > 0);
+      // Локальные игры: отрицательные ID или очень большие числа (потеря знака при сериализации)
+      // API игры обычно имеют ID меньше 1 миллиона, а timestamp (Date.now()) дает числа > 1 миллиарда
+      const MAX_API_ID = 1000000;
+      const isLocalId = (id: number) => id < 0 || id > MAX_API_ID;
 
+      const localIds = ids.filter(isLocalId);
+      const apiIds = ids.filter(id => !isLocalId(id));
+
+      // Находим локальные игры из allGames, которые есть в списке избранных
       const localGames = state.games.allGames.filter(game =>
         localIds.includes(game.id),
       );
 
+      // Находим API игры, которые уже есть в allGames
+      const existingApiGames = state.games.allGames.filter(game =>
+        apiIds.includes(game.id),
+      );
+
+      // Находим API игры, которые нужно загрузить
       const gamesToFetch = apiIds.filter(
-        id => !state.games.allGames.some(game => game.id === id),
+        id =>
+          id != null &&
+          id > 0 &&
+          !state.games.allGames.some(game => game.id === id),
       );
 
       const apiGames = await Promise.all(
-        gamesToFetch.map(id => getGameByIdApi(id).catch(() => null)),
+        gamesToFetch
+          .filter((id): id is number => id != null && id > 0)
+          .map(id => getGameByIdApi(id).catch(() => null)),
       );
 
-      return [...localGames, ...(apiGames.filter(Boolean) as Game[])];
+      // Возвращаем все игры: локальные + уже загруженные API + новые API
+      return [
+        ...localGames,
+        ...existingApiGames,
+        ...(apiGames.filter(Boolean) as Game[]),
+      ];
     } catch (e) {
       return rejectWithValue(
         e instanceof Error ? e.message : "Failed to fetch favorites",
@@ -82,15 +104,28 @@ const gamesSlice = createSlice({
   },
   reducers: {
     removeGame(state, action: PayloadAction<number>) {
-      state.allGames = state.allGames.filter(
-        game => game.id !== action.payload,
-      );
+      const id = action.payload;
+      state.allGames = state.allGames.filter(game => game.id !== id);
+      // Также удаляем из currentGames
+      state.currentGames = state.currentGames.filter(game => game.id !== id);
     },
     addCreatedGame: (state, action: PayloadAction<Game>) => {
       const id = action.payload.id;
       if (!state.allGames.some(g => g.id === id)) {
         state.allGames.unshift(action.payload);
+        // Добавляем игру в начало currentGames
+        // Если мы не на первой странице, сбрасываем на первую страницу
+        if (state.currentPage !== 1) {
+          state.currentPage = 1;
+        }
+        // Добавляем игру в начало currentGames, если её еще нет там
+        if (!state.currentGames.some(g => g.id === id)) {
+          state.currentGames = [action.payload, ...state.currentGames];
+        }
       }
+    },
+    resetFavoritesLoading: state => {
+      state.isFavoritesLoading = false;
     },
   },
   extraReducers: builder => {
@@ -105,8 +140,8 @@ const gamesSlice = createSlice({
       })
       .addCase(fetchGamesThunk.fulfilled, (state, action) => {
         const newGames = action.payload.results;
-        state.currentPage = action.meta.arg;
-        state.currentGames = newGames;
+        const page = action.meta.arg;
+        state.currentPage = page;
 
         const existingIds = new Set(state.allGames.map(g => g.id));
         const uniqueNewGames = newGames.filter(
@@ -116,6 +151,22 @@ const gamesSlice = createSlice({
         state.allGames = [...state.allGames, ...uniqueNewGames];
         state.total = action.payload.count;
         state.isLoading = false;
+
+        // На первой странице добавляем локальные игры в начало списка
+        if (page === 1) {
+          const MAX_API_ID = 1000000;
+          const localGames = state.allGames.filter(
+            game => game.id < 0 || game.id > MAX_API_ID,
+          );
+          // Объединяем локальные игры с API играми, исключая дубликаты
+          const apiGameIds = new Set(newGames.map(g => g.id));
+          const localGamesToShow = localGames.filter(
+            game => !apiGameIds.has(game.id),
+          );
+          state.currentGames = [...localGamesToShow, ...newGames];
+        } else {
+          state.currentGames = newGames;
+        }
       })
       .addCase(fetchFavoriteGamesThunk.pending, state => {
         state.isFavoritesLoading = true;
@@ -127,7 +178,11 @@ const gamesSlice = createSlice({
       .addCase(fetchFavoriteGamesThunk.fulfilled, (state, action) => {
         state.isFavoritesLoading = false;
 
-        const newGames = action.payload.filter(game => game.id > 0);
+        // Фильтруем только API игры (исключаем локальные с большими ID)
+        const MAX_API_ID = 1000000;
+        const newGames = action.payload.filter(
+          game => game.id > 0 && game.id <= MAX_API_ID,
+        );
         const existingIds = new Set(state.allGames.map(g => g.id));
         const uniqueNewGames = newGames.filter(
           game => !existingIds.has(game.id),
@@ -145,5 +200,6 @@ export const {
   isFavoritesLoadingSelector,
   totalGamesSelector,
 } = gamesSlice.selectors;
-export const { removeGame, addCreatedGame } = gamesSlice.actions;
+export const { removeGame, addCreatedGame, resetFavoritesLoading } =
+  gamesSlice.actions;
 export default gamesSlice.reducer;
