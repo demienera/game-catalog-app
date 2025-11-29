@@ -6,7 +6,6 @@ import {
   totalGamesSelector,
   isLoadingGamesSelector,
   isFavoritesLoadingSelector,
-  allGamesSelector,
   currentGamesSelector,
   fetchFavoriteGamesThunk,
   resetFavoritesLoading,
@@ -16,7 +15,6 @@ import {
   favoritesGamesSelector,
   removeFavorite,
   loadFavoritesFromStorage,
-  setFavoritesGames,
 } from "../app/slices/favorites/slice";
 
 export const useCatalogData = () => {
@@ -27,7 +25,6 @@ export const useCatalogData = () => {
   const lastProcessedFavoritesRef = useRef<string>("");
 
   const currentGames = useAppSelector(currentGamesSelector);
-  const allGames = useAppSelector(allGamesSelector);
   const favorites = useAppSelector(favoritesSelector);
   const favoritesGames = useAppSelector(favoritesGamesSelector);
 
