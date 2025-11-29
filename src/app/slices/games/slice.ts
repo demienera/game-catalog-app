@@ -90,7 +90,6 @@ const gamesSlice = createSlice({
       const id = action.payload.id;
       if (!state.allGames.some(g => g.id === id)) {
         state.allGames.unshift(action.payload);
-        localStorage.setItem("createdGames", JSON.stringify(state.allGames));
       }
     },
   },
