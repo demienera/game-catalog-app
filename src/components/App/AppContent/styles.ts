@@ -12,13 +12,14 @@ export const useAppContentStyles = () => {
       display: "flex",
       flexDirection: "column",
       backgroundColor: token.colorBgBase,
+      overflow: "auto",
+      minHeight: 0,
     } as CSSProperties,
 
     container: {
       marginBlock: 30,
       marginInline: "auto",
       paddingInline: 15,
-      maxWidth: 1500,
       width: "100%",
       flexGrow: 1,
       display: "flex",

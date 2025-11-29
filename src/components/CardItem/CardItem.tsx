@@ -31,7 +31,7 @@ export const CardItem = ({ item, onDelete }: CardItemProps) => {
   const handleLikeToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    dispatch(toggleFavorite(item.id));
+    dispatch(toggleFavorite({ gameId: item.id, game: item }));
   };
 
   const handleDelete = (e: React.MouseEvent) => {

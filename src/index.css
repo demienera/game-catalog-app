@@ -1,8 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rubik:wght@400;500;700&display=swap');
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  overflow: auto;
   font-family: 'Rubik', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+}
+
+.hero-link {
+  cursor: pointer;
+}
+
+.hero-link:hover {
+  color: #f72585 !important;
+  border-color: #f72585 !important;
+}
+
+/* Убираем отрицательные отступы у cover карточки Ant Design */
+.ant-card-bordered .ant-card-cover {
+  margin-top: 0 !important;
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
+}
+
+/* Стили для карточек: прозрачный бордер по умолчанию, цветной при ховере */
+.ant-card {
+  border: 1px solid transparent !important;
+  transition: border-color 0.3s ease !important;
+}
+
+.ant-card:hover {
+  border-color: #f72585 !important;
 }
