@@ -12,8 +12,8 @@ export function useGameDetails(id?: number) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id === undefined) {
-      setError("ID игры не указан");
+    if (id === undefined || id === null || !Number.isFinite(id)) {
+      setError("ID игры не указан или невалиден");
       setLoading(false);
       return;
     }
@@ -22,6 +22,20 @@ export function useGameDetails(id?: number) {
       try {
         setLoading(true);
         setError(null);
+
+        // Проверяем, является ли это локальной игрой
+        const MAX_API_ID = 1000000;
+        const isLocalId = id < 0 || id > MAX_API_ID;
+
+        if (isLocalId) {
+          const localGame = localGames.find(g => g.id === id);
+          if (localGame) {
+            setGame(localGame);
+            setScreenshots(localGame.screenshots || []);
+            setLoading(false);
+            return;
+          }
+        }
 
         const [apiGame, apiScreenshots] = await Promise.all([
           getGameByIdApi(id),

@@ -7,6 +7,8 @@ export const useCardItemStyles = () => {
       width: "100%",
       height: "100%",
       position: "relative",
+      border: "none",
+      transition: "border-color 0.3s ease",
     } as CSSProperties,
     likeIcon: (liked: boolean): CSSProperties =>
       ({

@@ -1,4 +1,4 @@
-import { Button, Typography } from "antd";
+import { Typography } from "antd";
 import { Link } from "react-router-dom";
 import { useHeroSectionStyles } from "./styles";
 
@@ -25,9 +25,10 @@ export const HeroSection = ({
     <section style={styles.container(backgroundImage)}>
       <Title style={styles.title}>{title}</Title>
       <Paragraph style={styles.subtitle}>{subtitle}</Paragraph>
-      <Button style={styles.button}>
-        <Link to={buttonLink}>{buttonText}</Link>
-      </Button>
+
+      <Link to={buttonLink} style={styles.link} className="hero-link">
+        {buttonText}
+      </Link>
     </section>
   );
 };

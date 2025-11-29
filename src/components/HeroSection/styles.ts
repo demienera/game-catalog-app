@@ -18,8 +18,8 @@ export const useHeroSectionStyles = () => {
       flexDirection: "column",
       gap: 15,
       background: token.colorBgContainer,
-      borderRadius: token.borderRadiusLG,
-      backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${bgImage})`,
+      borderRadius: 0,
+      backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${bgImage})`,
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
@@ -27,10 +27,10 @@ export const useHeroSectionStyles = () => {
     }),
     title: {
       margin: 0,
-      maxWidth: 700,
+      maxWidth: 900,
       fontSize: "clamp(2rem, 5vw, 3.5rem)",
       textAlign: "center",
-      color: token.colorTextBase,
+      color: token.colorPrimary,
       textShadow: "0 2px 4px rgba(0,0,0,0.5)",
     } as CSSProperties,
     subtitle: {
@@ -40,8 +40,15 @@ export const useHeroSectionStyles = () => {
       color: token.colorTextBase,
       textShadow: "0 1px 2px rgba(0,0,0,0.5)",
     } as CSSProperties,
-    button: {
+    link: {
       marginTop: token.marginMD,
+      border: `1px solid ${token.colorBorder}`,
+      borderRadius: 10,
+      color: token.colorTextBase,
+      padding: "6px 15px",
+      backgroundColor: token.colorBgContainer,
+      textDecoration: "none",
+      display: "inline-block",
     } as CSSProperties,
   };
 };

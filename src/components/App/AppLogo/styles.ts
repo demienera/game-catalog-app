@@ -11,7 +11,7 @@ export const useLogoStyles = () => {
       fontFamily: token.fontFamilySecondary,
       fontSize: 27,
       fontWeight: "bold",
-      color: "inherit",
+      color: token.colorPrimary,
     } as CSSProperties,
   };
 };
