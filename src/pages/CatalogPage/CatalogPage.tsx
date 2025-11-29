@@ -22,7 +22,8 @@ const CatalogPage = () => {
     handleShowFavorites,
     handleDelete,
   } = useCatalogData();
-  const totalPage = Math.min(total, PAGE_SIZE * MAX_PAGES);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const maxPages = Math.min(totalPages, MAX_PAGES);
 
   return (
     <div style={styles.container}>
@@ -50,7 +51,7 @@ const CatalogPage = () => {
           {!showFavorites && (
             <ItemsPagination
               currentPage={page}
-              total={totalPage}
+              total={maxPages}
               onChange={setPage}
             />
           )}

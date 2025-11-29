@@ -4,7 +4,7 @@ import { Card, Typography } from "antd";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   favoritesSelector,
-  toggleFavoriteWithCleanup,
+  toggleFavorite,
 } from "../../app/slices/favorites/slice";
 import { DeleteButton } from "../DeleteButton";
 import { LikeButton } from "../LikeButton";
@@ -31,7 +31,7 @@ export const CardItem = ({ item, onDelete }: CardItemProps) => {
   const handleLikeToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    dispatch(toggleFavoriteWithCleanup(item.id));
+    dispatch(toggleFavorite(item.id));
   };
 
   const handleDelete = (e: React.MouseEvent) => {

@@ -8,30 +8,17 @@ import {
   isFavoritesLoadingSelector,
   allGamesSelector,
   currentGamesSelector,
+  fetchFavoriteGamesThunk,
 } from "../app/slices/games/slice";
 import {
   favoritesSelector,
   removeFavorite,
 } from "../app/slices/favorites/slice";
-import { Game } from "../utils/types";
 
 export const useCatalogData = () => {
   const dispatch = useAppDispatch();
   const [showFavorites, setShowFavorites] = useState(false);
   const [page, setPage] = useState(1);
-
-  const [localGames, setLocalGames] = useState<Game[]>(() => {
-    try {
-      const stored = localStorage.getItem("createdGames");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem("createdGames", JSON.stringify(localGames));
-  }, [localGames]);
 
   const currentGames = useAppSelector(currentGamesSelector);
   const allGames = useAppSelector(allGamesSelector);
@@ -45,20 +32,26 @@ export const useCatalogData = () => {
       return allGames.filter(game => favorites.includes(game.id));
     }
 
-    const localGamesForPage = localGames.slice((page - 1) * 20, page * 20);
-    const apiGames = currentGames;
-
-    const remainingSlots = 20 - localGamesForPage.length;
-    const apiGamesForPage = apiGames.slice(0, remainingSlots);
-
-    return [...localGamesForPage, ...apiGamesForPage];
-  }, [showFavorites, allGames, favorites, currentGames, page, localGames]);
+    return currentGames;
+  }, [showFavorites, allGames, favorites, currentGames]);
 
   useEffect(() => {
     if (!showFavorites) {
       dispatch(fetchGamesThunk(page));
     }
   }, [dispatch, page, showFavorites]);
+
+  useEffect(() => {
+    if (showFavorites && favorites.length > 0) {
+      const missingFavorites = favorites.filter(
+        id => !allGames.some(game => game.id === id),
+      );
+
+      if (missingFavorites.length > 0) {
+        dispatch(fetchFavoriteGamesThunk(missingFavorites));
+      }
+    }
+  }, [showFavorites, favorites, allGames, dispatch]);
 
   const isEmpty = !displayedGames.length;
   const isLoadingData = showFavorites ? isFavoritesLoading : isLoading;
@@ -68,8 +61,6 @@ export const useCatalogData = () => {
   };
 
   const handleDelete = (id: number) => {
-    setLocalGames(prev => prev.filter(game => game.id !== id));
-
     dispatch(removeGame(id));
     dispatch(removeFavorite(id));
   };
